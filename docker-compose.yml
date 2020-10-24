@@ -1,0 +1,46 @@
+version: '3.1'
+
+services:
+
+  redis:
+    image: redis:latest
+    container_name: rd01
+
+  celery_worker:
+    build: ./
+    command: celery -A api_test worker -l info
+    depends_on:
+      - "redis"
+    restart: always
+
+  celery_beat:
+    build: ./
+    command: celery -A api_test beat -l info
+    depends_on:
+      - "redis"
+    restart: always
+
+  db:
+    container_name: db
+    image: postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    volumes:
+      - ./db/db_data:/var/lib/postgresql/data
+
+  test_api:
+    image: api
+    build: ./
+    command: python manage.py runserver 0.0.0.0:8000
+    restart: always
+    volumes:
+      - .:/api_test
+    ports:
+      - 8000:8000
+    depends_on:
+      - db
+    links:
+      - redis
