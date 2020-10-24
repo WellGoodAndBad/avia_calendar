@@ -1,4 +1,4 @@
-###### drf test work
+###### for start service
 - docker-compose build
 - docker-compose up
 
